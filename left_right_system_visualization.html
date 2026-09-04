@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Left System vs Right System</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --color-text-primary: #1a1a18;
+    --color-text-secondary: #5f5e5a;
+    --color-text-tertiary: #8c8b85;
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f5f4ef;
+    --color-border-tertiary: rgba(0,0,0,0.12);
+    --color-border-secondary: rgba(0,0,0,0.22);
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --font-sans: system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-text-primary: #e8e6dc;
+      --color-text-secondary: #a8a69e;
+      --color-text-tertiary: #6e6d68;
+      --color-background-primary: #1c1c1a;
+      --color-background-secondary: #252523;
+      --color-border-tertiary: rgba(255,255,255,0.10);
+      --color-border-secondary: rgba(255,255,255,0.18);
+    }
+    .tag-left { background: #26215C !important; color: #CECBF6 !important; }
+    .tag-right { background: #04342C !important; color: #9FE1CB !important; }
+    .sys-left { background: #1e1c38 !important; border-color: #534AB7 !important; }
+    .sys-left .sys-name { color: #CECBF6 !important; }
+    .sys-left .sys-sub { color: #7F77DD !important; }
+    .sys-left .sys-body { color: #AFA9EC !important; }
+    .sys-right { background: #0a2018 !important; border-color: #1D9E75 !important; }
+    .sys-right .sys-name { color: #9FE1CB !important; }
+    .sys-right .sys-sub { color: #1D9E75 !important; }
+    .sys-right .sys-body { color: #5DCAA5 !important; }
+    .arch-ai { background: #26215C !important; color: #CECBF6 !important; }
+    .arch-logic { background: #04342C !important; color: #9FE1CB !important; }
+    .arch-tool { background: #412402 !important; color: #FAC775 !important; }
+    .arch-eval { background: #4A1B0C !important; color: #F5C4B3 !important; }
+    .loop-exec { background: #04342C !important; color: #9FE1CB !important; }
+    .loop-explore { background: #26215C !important; color: #CECBF6 !important; }
+    .loop-consolidate { background: #412402 !important; color: #FAC775 !important; }
+    .loop-formalize { background: #042C53 !important; color: #B5D4F4 !important; }
+    .frontier-ai { background: #26215C !important; color: #CECBF6 !important; }
+    .frontier-gap { background: #412402 !important; color: #FAC775 !important; }
+    .frontier-open { background: #252523 !important; color: #a8a69e !important; }
+    .mature-right { background: #0a2018 !important; border-color: #1D9E75 !important; }
+    .mature-right .m-title { color: #9FE1CB !important; }
+    .mature-right .m-body { color: #5DCAA5 !important; }
+    .mature-left { background: #1e1c38 !important; border-color: #534AB7 !important; }
+    .mature-left .m-title { color: #CECBF6 !important; }
+    .mature-left .m-body { color: #AFA9EC !important; }
+    .phrase-card:hover { background: #2c2c2a !important; }
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-background-primary);
+    color: var(--color-text-primary);
+    padding: 2rem 1.5rem;
+    max-width: 820px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  h1 { font-size: 20px; font-weight: 500; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 2rem; }
+  .section { margin-bottom: 2.5rem; }
+  .section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-tertiary); margin-bottom: 0.75rem; }
+  .tag { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 99px; margin: 3px; }
+  .tag-left { background: #EEEDFE; color: #3C3489; }
+  .tag-right { background: #E1F5EE; color: #085041; }
+
+  /* System cards */
+  .sys-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .sys-card { border-radius: var(--border-radius-lg); padding: 16px; border: 0.5px solid; }
+  .sys-left { background: #EEEDFE; border-color: #AFA9EC; }
+  .sys-left .sys-name { color: #26215C; }
+  .sys-left .sys-sub { color: #534AB7; }
+  .sys-left .sys-body { color: #3C3489; }
+  .sys-right { background: #E1F5EE; border-color: #5DCAA5; }
+  .sys-right .sys-name { color: #04342C; }
+  .sys-right .sys-sub { color: #0F6E56; }
+  .sys-right .sys-body { color: #085041; }
+  .sys-name { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .sys-sub { font-size: 11px; margin-bottom: 10px; }
+  .sys-body { font-size: 12px; line-height: 1.5; margin-top: 10px; }
+
+  /* Compare table */
+  .compare-table { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+  .compare-row { display: grid; grid-template-columns: 1fr 54px 1fr; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .compare-row:last-child { border-bottom: none; }
+  .compare-cell { padding: 10px 14px; font-size: 13px; color: var(--color-text-secondary); line-height: 1.4; }
+  .compare-mid { display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--color-text-tertiary); font-weight: 500; border-left: 0.5px solid var(--color-border-tertiary); border-right: 0.5px solid var(--color-border-tertiary); }
+  .compare-header { font-size: 12px; font-weight: 500; padding: 8px 14px; background: var(--color-background-secondary); }
+  .col-l { color: #3C3489; }
+  .col-r { color: #085041; }
+
+  /* Architecture */
+  .arch-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+  .arch-box { display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 12px; font-weight: 500; text-align: center; line-height: 1.3; padding: 10px; flex: 1; }
+  .arch-ai { background: #EEEDFE; color: #3C3489; }
+  .arch-logic { background: #E1F5EE; color: #085041; }
+  .arch-tool { background: #FAEEDA; color: #633806; }
+  .arch-eval { background: #FAECE7; color: #4A1B0C; }
+  .arch-arrow { color: var(--color-text-tertiary); font-size: 18px; }
+  .arch-sub { font-size: 11px; font-weight: 400; }
+
+  /* Maturation */
+  .mature-grid { display: flex; align-items: stretch; gap: 10px; }
+  .mature-card { flex: 1; border: 0.5px solid; border-radius: var(--border-radius-md); padding: 12px; }
+  .mature-right { background: #E1F5EE; border-color: #5DCAA5; }
+  .mature-right .m-title { color: #04342C; }
+  .mature-right .m-body { color: #0F6E56; }
+  .mature-left { background: #EEEDFE; border-color: #AFA9EC; }
+  .mature-left .m-title { color: #26215C; }
+  .mature-left .m-body { color: #534AB7; }
+  .mature-mid { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--color-text-tertiary); font-size: 22px; flex: 0 0 32px; }
+  .mature-mid-label { font-size: 10px; text-align: center; color: var(--color-text-tertiary); }
+  .m-title { font-size: 12px; font-weight: 500; margin-bottom: 6px; }
+  .m-body { font-size: 12px; line-height: 1.6; }
+
+  /* Meta-loop */
+  .loop-row { display: flex; gap: 8px; }
+  .loop-box { flex: 1; border-radius: var(--border-radius-md); padding: 10px 12px; font-size: 12px; font-weight: 500; text-align: center; }
+  .loop-sub { font-size: 11px; font-weight: 400; display: block; margin-top: 3px; }
+  .loop-exec { background: #E1F5EE; color: #085041; }
+  .loop-explore { background: #EEEDFE; color: #3C3489; }
+  .loop-consolidate { background: #FAEEDA; color: #412402; }
+  .loop-formalize { background: #E6F1FB; color: #042C53; }
+
+  /* Frontier */
+  .frontier-bar { display: flex; height: 44px; border-radius: var(--border-radius-md); overflow: hidden; gap: 2px; margin: 12px 0 6px; }
+  .frontier-seg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex: 1; text-align: center; line-height: 1.3; padding: 0 8px; }
+  .frontier-ai { background: #EEEDFE; color: #3C3489; flex: 2.5; }
+  .frontier-gap { background: #FAC775; color: #412402; flex: 1.2; }
+  .frontier-open { background: #F1EFE8; color: #5F5E5A; border: 0.5px dashed #B4B2A9; flex: 1.5; }
+
+  /* Principles */
+  .phrases-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .phrase-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 14px; transition: background 0.15s; }
+  .phrase-card:hover { background: var(--color-background-secondary); }
+  .phrase-title { font-size: 12px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+  .phrase-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.4; }
+
+  .note { font-size: 12px; color: var(--color-text-tertiary); margin-top: 6px; }
+
+  @media (max-width: 540px) {
+    .sys-grid, .phrases-grid { grid-template-columns: 1fr; }
+    .arch-row { flex-direction: column; }
+    .arch-arrow { transform: rotate(90deg); }
+    .loop-row { flex-direction: column; }
+    .mature-grid { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Left System vs Right System</h1>
+<div class="subtitle">A visual reference for FPOS and CDAS — relationships, contrasts, and guiding principles</div>
+
+<!-- 1. System overview -->
+<div class="section">
+  <div class="section-label">The two systems at a glance</div>
+  <div class="sys-grid">
+    <div class="sys-card sys-left">
+      <div class="sys-name">Left System · FPOS</div>
+      <div class="sys-sub">Formalized Process-Orchestration System</div>
+      <div>
+        <span class="tag tag-left">structured</span><span class="tag tag-left">testable</span><span class="tag tag-left">composable</span><span class="tag tag-left">deterministic</span><span class="tag tag-left">evolvable</span><span class="tag tag-left">reviewable</span>
+      </div>
+      <div class="sys-body">Builds a reliable machine around work. AI is one component inside a broader system of execution, discovery, and validation.</div>
+    </div>
+    <div class="sys-card sys-right">
+      <div class="sys-name">Right System · CDAS</div>
+      <div class="sys-sub">Context-Driven Agentic System</div>
+      <div>
+        <span class="tag tag-right">natural language</span><span class="tag tag-right">prompt-first</span><span class="tag tag-right">fast adoption</span><span class="tag tag-right">agentic</span><span class="tag tag-right">exploratory</span>
+      </div>
+      <div class="sys-body">Learns quickly through AI collaboration. Excellent for rapid experimentation — but fragile if logic stays implicit.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Contrast table -->
+<div class="section">
+  <div class="section-label">Dimension-by-dimension contrast</div>
+  <div class="compare-table">
+    <div class="compare-row">
+      <div class="compare-header col-l">Left (FPOS)</div>
+      <div class="compare-mid" style="background: var(--color-background-secondary); border-left: 0.5px solid var(--color-border-tertiary); border-right: 0.5px solid var(--color-border-tertiary);">vs</div>
+      <div class="compare-header col-r">Right (CDAS)</div>
+    </div>
+    <div class="compare-row"><div class="compare-cell">Explicit process graphs &amp; contracts</div><div class="compare-mid">structure</div><div class="compare-cell">Prompts &amp; contextual instructions</div></div>
+    <div class="compare-row"><div class="compare-cell">Typed inputs/outputs, schemas</div><div class="compare-mid">interface</div><div class="compare-cell">Natural language, broad context</div></div>
+    <div class="compare-row"><div class="compare-cell">AI bounded at the edges</div><div class="compare-mid">AI role</div><div class="compare-cell">AI at the center of everything</div></div>
+    <div class="compare-row"><div class="compare-cell">Deterministic orchestration at core</div><div class="compare-mid">control</div><div class="compare-cell">Agent-style iteration &amp; review</div></div>
+    <div class="compare-row"><div class="compare-cell">Evaluators, evidence, review surfaces</div><div class="compare-mid">quality</div><div class="compare-cell">Human review of generated outputs</div></div>
+    <div class="compare-row"><div class="compare-cell">Higher setup cost, durable reliability</div><div class="compare-mid">tradeoff</div><div class="compare-cell">Fast start, fragile at scale</div></div>
+    <div class="compare-row"><div class="compare-cell">Reusable operators &amp; composable subprocesses</div><div class="compare-mid">knowledge</div><div class="compare-cell">One-off cases, prompt libraries</div></div>
+    <div class="compare-row"><div class="compare-cell">Formalization phase</div><div class="compare-mid">maturity</div><div class="compare-cell">Apprenticeship / learning phase</div></div>
+  </div>
+</div>
+
+<!-- 3. Architecture flow -->
+<div class="section">
+  <div class="section-label">Left system architecture — "AI proposes. Logic decides. Tools execute. Validation verifies."</div>
+  <div class="arch-row">
+    <div class="arch-box arch-ai">AI<br><span class="arch-sub">proposes / translates</span></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box arch-logic">Logic<br><span class="arch-sub">decides / gates</span></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box arch-tool">Tools<br><span class="arch-sub">execute</span></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box arch-eval">Validation<br><span class="arch-sub">verifies</span></div>
+  </div>
+  <div class="note">AI sits at the edges (translation, generation, suggestion) — deterministic logic and evaluators sit at the core.</div>
+</div>
+
+<!-- 4. Maturation -->
+<div class="section">
+  <div class="section-label">How the right system matures into the left system</div>
+  <div class="mature-grid">
+    <div class="mature-card mature-right">
+      <div class="m-title">Right system teaches…</div>
+      <div class="m-body">How to collaborate with AI<br>Where value appears<br>Where failure appears<br>Where review matters</div>
+    </div>
+    <div class="mature-mid">
+      <span>→</span>
+      <span class="mature-mid-label">limits hit:<br>context drift<br>prompt debt<br>inconsistent outputs</span>
+      <span>→</span>
+    </div>
+    <div class="mature-card mature-left">
+      <div class="m-title">Left system formalizes…</div>
+      <div class="m-body">Structure &amp; contracts<br>Process steps<br>Evaluators<br>Deterministic scaffolding</div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Meta-loop -->
+<div class="section">
+  <div class="section-label">The left system's inner meta-loop</div>
+  <div class="loop-row">
+    <div class="loop-box loop-exec">Execute<span class="loop-sub">known work</span></div>
+    <div class="loop-box loop-explore">Explore<span class="loop-sub">uncertain work</span></div>
+    <div class="loop-box loop-consolidate">Consolidate<span class="loop-sub">capture learning</span></div>
+    <div class="loop-box loop-formalize">Update graph<span class="loop-sub">formalize stable patterns</span></div>
+  </div>
+  <div class="note">Three process types prevent one giant "god function" — the system knows when to execute, when to explore, and when to formalize.</div>
+</div>
+
+<!-- 6. Frontier gap -->
+<div class="section">
+  <div class="section-label">The frontier gap — where human value lives</div>
+  <div class="frontier-bar">
+    <div class="frontier-seg frontier-ai">AI automation frontier<br><span style="font-weight:400;font-size:10px">AI executes reliably</span></div>
+    <div class="frontier-seg frontier-gap">Frontier gap ★<br><span style="font-weight:400;font-size:10px">your leverage</span></div>
+    <div class="frontier-seg frontier-open">Abstraction frontier<br><span style="font-weight:400;font-size:10px">new structure you create</span></div>
+  </div>
+  <div class="note">Value lives in the gap between the abstractions you can create and the abstractions AI can reliably consume. The left system is the vehicle for climbing that frontier.</div>
+</div>
+
+<!-- 7. Principles -->
+<div class="section">
+  <div class="section-label">Core guiding principles</div>
+  <div class="phrases-grid">
+    <div class="phrase-card">
+      <div class="phrase-title">AI at the edges, logic in the core</div>
+      <div class="phrase-desc">AI handles fuzziness; deterministic logic handles correctness and repeatability.</div>
+    </div>
+    <div class="phrase-card">
+      <div class="phrase-title">Extract functions, not just examples</div>
+      <div class="phrase-desc">Move from collecting outputs to discovering reusable, composable abstractions.</div>
+    </div>
+    <div class="phrase-card">
+      <div class="phrase-title">Structured variation under evaluation</div>
+      <div class="phrase-desc">Change controllable levers, isolate effects, observe differences, test claims.</div>
+    </div>
+    <div class="phrase-card">
+      <div class="phrase-title">Tools accelerate. Mind extracts.</div>
+      <div class="phrase-desc">Automation speeds exploration; function extraction and abstraction remain cognitive.</div>
+    </div>
+    <div class="phrase-card">
+      <div class="phrase-title">Progressive formalization</div>
+      <div class="phrase-desc">Leave uncertain areas exploratory. Formalize only what proves stable and repeatable.</div>
+    </div>
+    <div class="phrase-card">
+      <div class="phrase-title">Own the what &amp; why. Rent the how.</div>
+      <div class="phrase-desc">Build your ontology, evaluators, and success criteria. Let platforms own generic runtimes.</div>
+    </div>
+    <div class="phrase-card">
+      <div class="phrase-title">Process as a first-class object</div>
+      <div class="phrase-desc">Processes have goals, inputs, outputs, states, artifacts, evaluators — reusable across domains.</div>
+    </div>
+    <div class="phrase-card">
+      <div class="phrase-title">The durable moat</div>
+      <div class="phrase-desc">"We know what our system is, what good looks like, and how to verify it" — not just orchestration.</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
