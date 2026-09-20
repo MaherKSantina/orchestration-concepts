@@ -1,0 +1,49 @@
+title: Owner and reach
+description: Who owns a piece of configuration and how far it applies. Together they make the four cells that exist.
+sections:
+  - title: Owner
+    description: Who writes it and who sees it. Three values.
+    body: |
+      | Owner | Where it lives | Examples |
+      |---|---|---|
+      | Org | Deployed by an admin to every machine or every account | A managed CLAUDE.md, managed-settings.json, provisioned skills |
+      | Team | Committed in the repo, or a Project shared with people | The repo's CLAUDE.md, `.claude\rules`, `.claude\skills`, `.claude\settings.json`, a shared Project |
+      | Me | My home folder, a git-ignored local file, or my own account | `~\.claude\CLAUDE.md`, `CLAUDE.local.md`, `.claude\settings.local.json`, auto-memory, Settings > General |
+
+      "Global" and "local" are not places on this axis. Global means me everywhere. Local means me in this repo. Both are cells of owner times reach.
+  - title: Reach
+    description: How far it applies. A folder tree, everywhere, or one Project.
+    body: |
+      | Reach | Meaning |
+      |---|---|
+      | Everywhere | Every project on this machine, or the whole account |
+      | A folder and everything below it | An ancestor folder, the repo root, a subfolder, or files matching a path pattern |
+      | One Project | A claude.ai Project, in the chat app only |
+
+      Project, repo, ancestor folder and subfolder are the same value at different depths. CLAUDE.md files stack along the path from the drive root down to the file being touched: ancestors load at start, a subfolder's file loads when Claude works there, and a path-scoped rule narrows reach further with a glob.
+    children:
+      - title: The levels of a folder tree
+        body: |
+          - **An ancestor folder.** `C:\Github\CLAUDE.md` applies to every repo under `C:\Github`, because Claude Code walks up from the working directory and loads each ancestor's CLAUDE.md.
+          - **The repo root.** The main CLAUDE.md, plus `.claude\CLAUDE.md` as a second home for it.
+          - **A subfolder.** `dates\CLAUDE.md` loads only when Claude reads or edits a file inside `dates`.
+          - **A path pattern.** A rule whose frontmatter lists `paths:` globs attaches only when a matching file is touched.
+  - title: The four populated cells
+    description: Owner times reach has six cells in Claude Code. Only four have a mechanism.
+    body: |
+      | | Everywhere | A folder tree |
+      |---|---|---|
+      | Org | Managed CLAUDE.md, managed-settings.json, provisioned skills | Nothing |
+      | Team | Nothing | CLAUDE.md at any level, `.claude\rules`, `.claude\skills`, `.claude\settings.json`, `.mcp.json` |
+      | Me | `~\.claude\CLAUDE.md`, `~\.claude\rules`, `~\.claude\skills`, `~\.claude\settings.json` | `CLAUDE.local.md`, `.claude\settings.local.json`, auto-memory |
+
+      These four are exactly the four folders of the claude-map mirror: org managed, me all projects, team this repo, me this project. The chat app adds the Project column: a shared Project is the team's, a private one is mine.
+  - title: Gaps in the grid
+    description: Cells with no mechanism, and what to do instead.
+    body: |
+      - **No personal rules or skills for a single repo.** Anything that is mine alone in one project has to be CLAUDE.local.md, settings.local.json or memory.
+      - **Memory lives in exactly one cell,** me in this repo. That is why it is stored under the home folder but keyed by the project path, and why it never reaches teammates or cloud sessions. Moving a fact to the team is a change of cell, not a copy.
+      - **Nothing a team writes applies everywhere.** Team-wide defaults across repos are the org's cell, or a plugin marketplace.
+  - title: How reach differs per harness
+    body: |
+      In Claude Code reach is always a folder tree, with everywhere meaning the home folder. In the chat app reach is the account, a Project, or an anchored folder. The same owner values apply to both, which is what makes one grid per harness possible.

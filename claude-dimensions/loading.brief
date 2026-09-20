@@ -1,0 +1,48 @@
+title: Loading and binding
+description: When a thing enters Claude's context, and whether it is followed or enforced. This is the axis the probes measure.
+sections:
+  - title: The load tiers
+    description: Six ways into context, from eager to on demand.
+    body: |
+      | Tier | What loads this way |
+      |---|---|
+      | At session start | Every CLAUDE.md in the chain, unscoped rules, skill descriptions, the MEMORY.md index, settings |
+      | When a matching path is touched | Path-scoped rules, a subfolder's CLAUDE.md |
+      | When invoked | A skill's body and the files beside it |
+      | When Claude opens it | Memory topic files, knowledge files, any file in the folder |
+      | Injected by a hook at an event | Whatever a SessionStart or UserPromptSubmit hook prints, such as orchestration's memory outline |
+      | Found by search when the question matches | Large Project knowledge in the chat app |
+  - title: Kind mostly decides load
+    body: |
+      Instructions load at start. Rules load at start unless path-scoped. Skills load their description at start and their body on invocation. Memory loads its index at start and its topics on demand. Knowledge loads whole when small and by search when large. Settings never load as text at all.
+
+      Because kind and load line up this closely, rule and instruction feel like the same thing: they differ only on this axis and in file layout. For a map of what Claude reads, load is the more useful axis and rule is a layout detail.
+  - title: Limits
+    body: |
+      - MEMORY.md: only the first 200 lines or 25KB load at start. Claude Code warns when the file nears the limit and errors when it passes it.
+      - A CLAUDE.md of up to 4 MiB loads in full; a larger one is skipped. Shorter files are followed more consistently.
+      - A skill contributes only its description until invoked.
+      - Memory topic files never load at start, so a fact buried in one is invisible until Claude opens it.
+  - title: Binding
+    description: Context or enforcement. Two values, and the difference matters more than any other.
+    body: |
+      Instructions, rules, skills, memory and knowledge are all context: Claude reads them and follows them by judgment, and the docs say so plainly, "context, not enforced configuration". The more specific and concise the instruction, the more consistently it is followed, but nothing guarantees it.
+
+      Settings are enforced by the harness. A permission rule refuses a tool call, a hook can deny an action or inject text, a toggle turns a feature off. Anything that must be impossible rather than discouraged belongs here.
+    children:
+      - title: How a hook works
+        body: |
+          A hook is registered in a settings file under `hooks`, by event name, with the command to run. The script can live anywhere; the absolute path in the command is what matters. At the event Claude Code spawns the command with the event's details as JSON on stdin and waits up to the timeout. For SessionStart and UserPromptSubmit, what the script prints, or the `additionalContext` field of the JSON it prints, is added to the conversation. Hooks in a repo's own settings file run only once the folder is trusted.
+
+          Orchestration's `claude\hook.mjs` is the worked example: registered in `.claude\settings.json`, it reads the master playbook and the memory brief from disk on every call and prints their outline, so an edit in the Studio is visible on the next prompt with no restart.
+      - title: Hooks as promoters
+        body: |
+          A hook is the mechanism that turns a plain file into loaded context by force, where a CLAUDE.md does the same by convention. Without the settings entry, orchestration's memory brief would be just a file Claude might open if told to. The hook is what makes it memory.
+  - title: What the probes showed
+    description: One token in every documented location, one question in a fresh session.
+    body: |
+      Loaded at session start, both in the terminal and in the desktop app's Code tab: the user CLAUDE.md, the parent folder's CLAUDE.md, the repo's CLAUDE.md, the @import, `.claude\CLAUDE.md`, CLAUDE.local.md, the unscoped user rule, the unscoped project rule, the memory index line, and both skill descriptions.
+
+      Not loaded until triggered, by design: both skill bodies, the memory topic file, both rules scoped to `dates\**`, and the subfolder CLAUDE.md in `dates`.
+
+      In a terminal session `/context` prints the same answer without probes: which CLAUDE.md, rules and memory files loaded.

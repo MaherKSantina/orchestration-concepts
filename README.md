@@ -20,6 +20,7 @@ The through-line: **AI didn't replace the system — it became one agent inside 
 - **[Abstraction and Function Creation Methodology](Abstraction%20and%20Function%20Creation%20Methodology.md)** — a domain-agnostic method for isolating controllable variables and extracting reusable functions.
 - **[Methodology Machinery](methodology_machinery.md)** — the same machinery applied to different sources of truth (code-as-source vs spec-as-source).
 - **[platform-specs/](platform-specs)** — the product and technical specifications the platform was actually built from.
+- **[Claude configuration dimensions](claude-dimensions/claude-dimensions.playbook)** — where a piece of Claude configuration lives, who owns it, what it is and when it loads: a Studio playbook of decisions and sub-decisions, with four briefs beside it explaining each group (where it runs, owner and reach, kinds, loading and binding).
 
 ## Context
 
