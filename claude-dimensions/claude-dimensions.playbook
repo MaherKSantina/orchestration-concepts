@@ -215,7 +215,11 @@ events:
               Teammates see permission allow rules, `additionalDirectories`, marketplaces and hooks only after they trust the folder, and an `@import` that resolves outside the repo asks each of them for approval once. A skill shared across several repos is a plugin, published in a marketplace and named in `.claude\settings.json` under `extraKnownMarketplaces` and `enabledPlugins`.
           - title: Chat app
             body: |
-              Share the Project: its instructions, knowledge files and memory space reach everyone it is shared with. Skills are per account, so the org admin provisions one for everyone under Settings > Skills, otherwise each teammate uploads it. The synced copy then reaches every teammate's Claude Code as well.
+              Share the Project: its instructions, knowledge files and memory space reach everyone it is shared with.
+
+              Share the skill, from its page under Settings > Skills. Two ways on a Team plan: with named people, who get it by link, or published to the organisation's directory, where anyone can find and install it; an owner must turn on Share with organization under Organization settings > Skills before the publish option appears, and Team defaults publishing to Open, with no review step. Either way the skill is view-only for recipients and stays off until each of them enables it. When the owner saves a new version, everyone who has it gets the update at next use, and the owner can withdraw access at any time.
+
+              A teammate's Claude Code syncs the skill into `~\.claude\skills\synced` once they have enabled it, checking claude.ai about every ten minutes, in sessions signed in with the claude.ai account rather than an API key. So a shared skill updates everywhere from one place, where a committed skill updates only when each person pulls.
   - key: org-wide
     label: I want to promote a kind to org wide
     trigger: chosen
@@ -238,4 +242,6 @@ events:
               `/status` names the managed source in force on a machine.
           - title: Chat app
             body: |
-              The admin console: skills provisioned for the whole organisation under Settings > Skills, org-level settings and policies, and Projects shared with the organisation. Custom instructions and memory stay per user, so an org-wide behaviour is a provisioned skill or a shared Project's instructions.
+              Provision the skill: an owner uploads or creates it under Organization settings > Skills. It appears for everyone automatically and is on by default; a user can switch it off for themselves but cannot delete it, and an update by the owner is the update for all. This is the only route that reaches everyone without each person enabling something. A skill merely shared or published to the directory has org reach but stays opt-in per person, which is the team tier. Provisioned skills show in chat, in the desktop app's Chat tab and in Cowork, and sync down to every member's Claude Code.
+
+              Beyond skills, the admin console holds org-level settings and policies, and a Project can be shared with the whole organisation. Custom instructions and memory stay per user, so an org-wide behaviour is a provisioned skill or a shared Project's instructions.
