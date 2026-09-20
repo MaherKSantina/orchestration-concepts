@@ -1,10 +1,9 @@
 version: 2
 title: Claude configuration dimensions
-description: Where a piece of Claude configuration lives, who owns it, what it is, and when it loads. Answer the questions to see what exists in that cell; the briefs beside this book explain each group.
+description: Where Claude runs, who owns a piece of configuration, how far it applies, what kind of thing it is, and when it enters context. Each event explains one decision's answers.
 decisions:
   - key: harness
     label: Where does Claude run?
-    detail: The outermost axis. It decides which of the other questions apply at all.
     values:
       - key: chat
         label: Chat app
@@ -12,24 +11,19 @@ decisions:
         activates: [anchor]
       - key: code
         label: Claude Code
-        detail: The same engine in the terminal, the desktop app's Code tab, an IDE extension or a cloud session
+        detail: One engine in several hosts
         activates: [host]
   - key: anchor
     label: What is the chat anchored to?
-    detail: Picked when the chat starts. It decides what reach means here.
     values:
       - key: none
         label: Nothing
-        detail: Account-wide sources only
       - key: project
         label: A Project
-        detail: Its instructions, knowledge files and memory space come along
       - key: folder
         label: A folder
-        detail: File access to the folder; whether its CLAUDE.md is read is still to verify
   - key: host
     label: Which host runs Claude Code?
-    detail: The host changes the tools on offer, not where instructions come from, except in the cloud.
     values:
       - key: terminal
         label: Terminal
@@ -39,366 +33,300 @@ decisions:
         label: VS Code or JetBrains extension
       - key: cloud
         label: Cloud session
-        detail: Another machine. Only the repo's own files travel there
   - key: owner
     label: Who owns it?
-    detail: Who writes it and who sees it.
     values:
       - key: org
         label: Org
-        detail: Deployed by an admin
       - key: team
         label: Team
-        detail: Committed in the repo, or a Project shared with people
       - key: me
         label: Me
-        detail: My home folder, a git-ignored local file, or my own account
   - key: reach
     label: Where does it apply?
     values:
       - key: everywhere
         label: Everywhere
-        detail: Every project on this machine, or the whole account
       - key: tree
         label: A folder and everything below it
-        activates: [tree-level]
       - key: project
         label: One Project
         when: [harness=chat]
-  - key: tree-level
-    label: Which folder?
-    values:
-      - key: ancestor
-        label: An ancestor folder
-        detail: Its CLAUDE.md applies to every repo below it
-      - key: root
-        label: The repo root
-      - key: subfolder
-        label: A subfolder
-        detail: Its CLAUDE.md loads when Claude works on files inside it
-      - key: pattern
-        label: Files matching a path pattern
-        detail: A rule with a paths list in its frontmatter
   - key: kind
     label: What kind of thing is it?
     values:
       - key: instruction
         label: Instruction
-        detail: Standing guidance on how to behave
-        activates: [instruction-place]
       - key: rule
         label: Rule
-        detail: An instruction in its own file, optionally path-scoped. Claude Code only
-        activates: [rule-scope]
+        when: [harness=code]
       - key: skill
         label: Skill
-        detail: A procedure for one kind of task, with its scripts and references
-        activates: [skill-source]
       - key: memory
         label: Memory
-        detail: What Claude wrote down from earlier sessions
-        activates: [memory-regime, memory-gate]
       - key: knowledge
         label: Knowledge files
-        detail: Reference material to consult, not guidance
+        when: [harness=chat]
       - key: settings
         label: Settings
-        detail: Permissions, hooks, environment. Enforced by the harness, never read as text
-        activates: [settings-tier]
-  - key: instruction-place
-    label: Where does the instruction sit?
-    values:
-      - key: user-claudemd
-        label: '~\.claude\CLAUDE.md'
-        when: [harness=code]
-      - key: ancestor-claudemd
-        label: An ancestor folder's CLAUDE.md
-        when: [harness=code]
-      - key: root-claudemd
-        label: The repo's CLAUDE.md
-        when: [harness=code]
-      - key: dot-claudemd
-        label: '.claude\CLAUDE.md'
-        when: [harness=code]
-      - key: local-claudemd
-        label: CLAUDE.local.md
-        when: [harness=code]
-      - key: subfolder-claudemd
-        label: A subfolder's CLAUDE.md
-        when: [harness=code]
-      - key: import
-        label: A file pulled in by an @import line
-        when: [harness=code]
-      - key: settings-general
-        label: 'Settings > General'
-        when: [harness=chat]
-      - key: project-instructions
-        label: A Project's instructions field
-        when: [harness=chat]
-      - key: folder-claudemd
-        label: The anchored folder's CLAUDE.md
-        detail: Still to verify after the merge
-        when: [harness=chat]
-  - key: rule-scope
-    label: Is the rule scoped to paths?
-    values:
-      - key: unscoped
-        label: Unscoped
-        detail: Loads at start like an extra CLAUDE.md
-      - key: scoped
-        label: Path-scoped
-        detail: A paths list in its frontmatter. Loads when a matching file is touched
-  - key: skill-source
-    label: Where does the skill come from?
-    values:
-      - key: user-skills
-        label: '~\.claude\skills'
-        when: [harness=code]
-      - key: project-skills
-        label: '.claude\skills'
-        when: [harness=code]
-      - key: plugin
-        label: A plugin
-      - key: synced
-        label: Synced down from claude.ai
-        detail: '~\.claude\skills\synced'
-        when: [harness=code]
-      - key: uploaded
-        label: 'Settings > Skills'
-        detail: Uploaded by me, or provisioned by the org
-        when: [harness=chat]
-  - key: memory-regime
-    label: How is memory kept?
-    values:
-      - key: auto
-        label: Auto-memory on
-        detail: '~\.claude\projects\<key>\memory, machine-local, per repository'
-        when: [harness=code]
-      - key: relocated
-        label: Auto-memory relocated
-        detail: autoMemoryDirectory in a settings file
-        when: [harness=code]
-      - key: brief
-        label: Auto-memory off, a memory brief
-        detail: A curated brief in the repo, injected by a hook. The orchestration regime
-        when: [harness=code]
-      - key: account
-        label: Account memory
-        detail: 'Settings > Memory, with a space per Project'
-        when: [harness=chat]
-      - key: app-db
-        label: The app's per-folder memory
-        detail: Kept in the desktop app's database. Still to verify after the merge
-        when: [harness=chat]
-  - key: memory-gate
-    label: Who decides what is written?
-    values:
-      - key: claude
-        label: Claude writes on its own
-      - key: ask
-        label: Shown first, written only on a yes
-        detail: A rule or a playbook event. Followed, not enforced
-      - key: enforced
-        label: A hook or permission rule refuses the write
-  - key: settings-tier
-    label: Which settings tier?
-    values:
-      - key: managed
-        label: Managed
-        detail: managed-settings.json, deployed by the org
-        when: [harness=code]
-      - key: user
-        label: User
-        detail: '~\.claude\settings.json, me in every project'
-        when: [harness=code]
-      - key: project
-        label: Shared project
-        detail: '.claude\settings.json, everyone in the repo'
-        when: [harness=code]
-      - key: project-local
-        label: Project local
-        detail: '.claude\settings.local.json, me in this repo'
-        when: [harness=code]
-      - key: cli
-        label: Command line
-        detail: claude --settings, this session only
-        when: [harness=code]
-      - key: account
-        label: Account settings
-        detail: The Settings pages of claude.ai
-        when: [harness=chat]
   - key: load
     label: When does it enter context?
     values:
       - key: start
         label: At session start
-        detail: Whole file, every session
       - key: path
         label: When a matching path is touched
-        detail: A path-scoped rule, a subfolder's CLAUDE.md
       - key: invoke
         label: When invoked
-        detail: A skill body, by /name or by Claude's choice
       - key: open
         label: When Claude opens it
-        detail: A memory topic file, a knowledge file, any file in the folder
-      - key: hook
-        label: Injected by a hook at an event
-        detail: SessionStart, or every prompt
-      - key: retrieval
-        label: Found by search when the question matches
-        detail: Large Project knowledge
-  - key: binding
-    label: How does it bind?
-    values:
-      - key: context
-        label: Read as context
-        detail: Followed by judgment. The more specific, the more consistently
-      - key: enforced
-        label: Enforced by the harness
-        detail: A hook, a permission rule, a setting
 events:
-  - key: where
-    label: Where it runs
+  - key: harness
+    label: The harness
     trigger: imposed
     domain: Where it runs
-    detail: Explained in where-it-runs.brief beside this book.
-    hint: Answer where Claude runs to see what that harness reads.
     content:
-      key: where
-      label: What this harness reads
-      kind: md
-      by: [harness]
-      docs:
-        harness=chat: |
-          The chat app reads from the account first: Settings > General for standing instructions, Settings > Memory, Settings > Skills, and the connectors you enabled. Anchoring the chat to a Project or a folder adds that anchor's sources on top.
+      key: harness
+      kind: brief
+      doc:
+        title: Where Claude runs
+        description: The outermost dimension. It decides which of the other questions apply at all.
+        sections:
+          - title: Chat app
+            description: claude.ai on the web or in the desktop app. What Cowork did is now a chat anchored to a folder.
+            body: |
+              Reads from the account: Settings > General for standing instructions, Settings > Memory, Settings > Skills, and the connectors you enabled. Anchoring the chat to a Project or a folder adds that anchor's sources on top. Nothing on this PC is read unless the chat is anchored to a folder.
 
-          Nothing on this PC is read unless the chat is anchored to a folder. The one thing that reaches disk from the account is the skills, synced down for Claude Code.
-        harness=code: |
-          Claude Code reads files: the CLAUDE.md chain from the home folder down through every ancestor to the working directory, the rules folders, the skills folders, the settings tiers and the auto-memory index. Everything loads from disk at session start, and the same set loads in every host.
+              Reach here means the whole account, one Project, or the anchored folder. Rules do not exist in this harness.
+          - title: Claude Code
+            description: One engine in the terminal, the desktop app's Code tab, an IDE extension or a cloud session.
+            body: |
+              Reads files from disk at session start: the CLAUDE.md chain from the home folder down through every ancestor to the working directory, the rules folders, the skills folders, the settings tiers and the auto-memory index. Path-scoped rules, subfolder CLAUDE.md files, skill bodies and memory topic files wait for their trigger.
 
-          What the host changes is the tool set. The cloud is the exception, where only the repo's own files exist.
-  - key: host-changes
-    label: What the host changes
+              Reach here is always a folder and everything below it, with everywhere meaning the home folder. Claude Code is always anchored to a folder, its working directory.
+          - title: What crosses the two
+            body: |
+              Skills. Uploaded on claude.ai, they sync down to `~\.claude\skills\synced` and appear in Claude Code as one group. Nothing else does: instructions, rules, memory and settings each live in one harness.
+  - key: anchor
+    label: The anchor
     trigger: imposed
     domain: Where it runs
-    detail: Explained in where-it-runs.brief beside this book.
-    when: [harness=code]
-    hint: Answer which host to see what it adds.
-    content:
-      key: host-changes
-      label: What this host adds
-      kind: md
-      by: [host]
-      docs:
-        host=terminal: |
-          The plain CLI. The files above, the built-in tools, and the MCP servers named in the settings tiers and .mcp.json. Nothing app-specific.
-
-          `/context` shows which CLAUDE.md, rules and memory loaded in this session. `/memory` opens them.
-        host=desktop: |
-          The same files, plus the desktop app's own servers: a browser pane, a terminal pane, session and sidebar controls, and the skills synced from claude.ai shown as one group.
-
-          Probe sessions run from the terminal and from this Code tab saw the same eleven tokens, so the host does not change the sources.
-        host=ide: |
-          The same files, plus the editor's context: diagnostics, the current selection, and diffs shown in the editor.
-        host=cloud: |
-          Runs on another machine. The repo's committed files travel: its CLAUDE.md, .claude\rules, .claude\skills and .claude\settings.json.
-
-          Nothing from ~\.claude on this PC does: no user CLAUDE.md, no user rules, no user skills, no auto-memory.
-  - key: anchor-brings
-    label: What the anchor brings
-    trigger: imposed
-    domain: Where it runs
-    detail: Explained in where-it-runs.brief beside this book.
     when: [harness=chat]
-    hint: Answer what the chat is anchored to.
     content:
-      key: anchor-brings
-      label: What this anchor adds
-      kind: md
-      by: [anchor]
-      docs:
-        anchor=none: |
-          Account-wide sources only: Settings > General, Settings > Memory, Settings > Skills, connectors.
-
-          Expected probe result: only the account-level tokens.
-        anchor=project: |
-          The account sources plus the Project's instructions field, its knowledge files, small totals whole and large totals by search, and the Project's own memory space.
-
-          Expected probe result: the Project's token and nothing from disk.
-        anchor=folder: |
-          The account sources plus file access to the folder.
-
-          Three open tests: whether the folder's CLAUDE.md is read, whether the old per-folder instructions field survived the merge, and whether a memory saved here lands in the account or stays on this PC.
-  - key: cell
-    label: What exists in this cell
+      key: anchor
+      kind: brief
+      doc:
+        title: What a chat is anchored to
+        description: Picked when the chat starts. It decides what reach means in the chat app.
+        sections:
+          - title: Nothing
+            body: |
+              Account-wide sources only: Settings > General, Settings > Memory, Settings > Skills, connectors. A probe should show only the account-level tokens.
+          - title: A Project
+            body: |
+              The account sources plus the Project's instructions field, its knowledge files and its own memory space. A shared Project is the team's; a private one is mine. A probe should show the Project's token and nothing from disk.
+          - title: A folder
+            body: |
+              The account sources plus file access to the folder. Three things are still to verify after the merge: whether the folder's CLAUDE.md is read, whether the old per-folder instructions field survived, and whether a memory saved here lands in the account or stays on this PC.
+  - key: host
+    label: The host
+    trigger: imposed
+    domain: Where it runs
+    when: [harness=code]
+    content:
+      key: host
+      kind: brief
+      doc:
+        title: Which host runs Claude Code
+        description: The host changes the tools on offer, not where instructions come from. The cloud is the one exception.
+        sections:
+          - title: Terminal
+            body: |
+              The plain CLI: the files, the built-in tools, and the MCP servers named in settings and `.mcp.json`. `/context` prints which CLAUDE.md, rules and memory loaded; `/memory` opens them.
+          - title: Desktop app, Code tab
+            body: |
+              The same files, plus the app's own servers: a browser pane, a terminal pane, session and sidebar controls. Probe sessions from the terminal and from this tab saw the same eleven tokens, which is the evidence that the host does not change the sources.
+          - title: VS Code or JetBrains extension
+            body: |
+              The same files, plus the editor's context: diagnostics, the current selection, diffs shown in the editor.
+          - title: Cloud session
+            body: |
+              Runs on another machine. The repo's committed files travel: its CLAUDE.md, `.claude\rules`, `.claude\skills`, `.claude\settings.json`. Nothing from `~\.claude` on this PC does: no user CLAUDE.md, user rules, user skills or auto-memory.
+  - key: owner
+    label: The owner
     trigger: imposed
     domain: Owner and reach
-    detail: Explained in owner-and-reach.brief beside this book.
-    hint: Answer who owns it and where it applies to see the mechanisms in that cell.
     content:
-      key: cell
-      label: The mechanisms here
-      kind: md
-      by: [owner, reach]
-      docs:
-        owner=org,reach=everywhere: |
-          A managed CLAUDE.md and managed-settings.json deployed by an admin, plus skills provisioned through managed plugins or Settings > Skills.
+      key: owner
+      kind: brief
+      doc:
+        title: Who owns it
+        description: Who writes it and who sees it. Global and local are not values here; global is me everywhere, local is me in this repo.
+        sections:
+          - title: Org
+            body: |
+              Deployed by an admin to every machine or every account: a managed CLAUDE.md, managed-settings.json, skills provisioned through managed plugins or Settings > Skills. Empty on this PC.
+          - title: Team
+            body: |
+              Committed in the repo, so everyone who clones it gets them: CLAUDE.md at an ancestor folder, the repo root, `.claude\CLAUDE.md` or a subfolder; `.claude\rules`; `.claude\skills`; `.claude\settings.json`; `.mcp.json`. In the chat app, a Project shared with people.
+          - title: Me
+            body: |
+              My home folder for everywhere: `~\.claude\CLAUDE.md`, `~\.claude\rules`, `~\.claude\skills`, `~\.claude\settings.json`. Git-ignored files for one repo: `CLAUDE.local.md`, `.claude\settings.local.json`, and auto-memory under `~\.claude\projects\<key>\memory`. In the chat app, Settings > General, Settings > Memory, Settings > Skills, and a private Project.
+  - key: reach
+    label: The reach
+    trigger: imposed
+    domain: Owner and reach
+    content:
+      key: reach
+      kind: brief
+      doc:
+        title: Where it applies
+        description: How far a piece of configuration reaches. With owner it makes the cells that exist.
+        sections:
+          - title: Everywhere
+            body: |
+              Every project on this machine, or the whole account. In Claude Code this is the home folder, `~\.claude`. In the chat app it is the Settings pages.
+          - title: A folder and everything below it
+            body: |
+              An ancestor folder, the repo root, or a subfolder are the same value at different depths. CLAUDE.md files stack along the path from the drive root down to the file being touched: `C:\Github\CLAUDE.md` applies to every repo under it, the repo's own CLAUDE.md to the repo, and `dates\CLAUDE.md` only when Claude works inside `dates`. A rule with a `paths:` list narrows reach further to matching files.
+          - title: One Project
+            body: |
+              A claude.ai Project, in the chat app only: its instructions, knowledge files and memory space, for every chat anchored to it.
+          - title: The cells that exist
+            body: |
+              | | Everywhere | A folder tree | One Project |
+              |---|---|---|---|
+              | Org | Managed CLAUDE.md, managed settings, provisioned skills | Nothing | A Project shared with the whole org, which is the team cell |
+              | Team | Nothing | CLAUDE.md at any level, `.claude\rules`, `.claude\skills`, `.claude\settings.json`, `.mcp.json` | A shared Project |
+              | Me | `~\.claude\CLAUDE.md`, `~\.claude\rules`, `~\.claude\skills`, `~\.claude\settings.json` | `CLAUDE.local.md`, `.claude\settings.local.json`, auto-memory | A private Project |
 
-          Empty on this PC.
-        owner=org,reach=tree: |
-          No mechanism. An org reaches a single folder only through what the team commits there.
-        owner=org,reach=project: |
-          No separate mechanism. A Project shared with the whole organisation is the team cell.
-        owner=team,reach=everywhere: |
-          No mechanism. Nothing a team writes applies to every repo on a machine. That is the org's cell, or a plugin marketplace.
-        owner=team,reach=tree: |
-          The most populated cell: CLAUDE.md at an ancestor folder, the repo root, .claude\CLAUDE.md or a subfolder; .claude\rules; .claude\skills; .claude\settings.json; .mcp.json.
-
-          All committed, so everyone who clones the repo gets them.
-        owner=team,reach=project: |
-          A claude.ai Project shared with people: its instructions, knowledge files and memory space.
-        owner=me,reach=everywhere: |
-          ~\.claude\CLAUDE.md, ~\.claude\rules, ~\.claude\skills, ~\.claude\settings.json, ~\.claude\agents.
-
-          In the chat app: Settings > General, Settings > Memory and Settings > Skills.
-        owner=me,reach=tree: |
-          CLAUDE.local.md, .claude\settings.local.json, and auto-memory under ~\.claude\projects\<key>\memory.
-
-          No personal rules or skills exist for a single repo.
-        owner=me,reach=project: |
-          A private Project: its instructions, knowledge files and memory space, seen by me alone.
-  - key: kind-loads
-    label: How this kind loads and binds
+              The four populated Claude Code cells are the four folders of the claude-map mirror. Two gaps matter: there are no personal rules or skills for a single repo, and memory lives in exactly one cell, me in this repo, which is why it never reaches teammates or cloud sessions.
+  - key: kind
+    label: The kind
     trigger: imposed
     domain: Kinds
-    detail: Explained in kinds.brief and loading.brief beside this book.
-    hint: Answer what kind of thing it is.
     content:
-      key: kind-loads
-      label: Load and binding for this kind
-      kind: md
-      by: [kind]
-      docs:
-        kind=instruction: |
-          Loads at start, whole file, every session. A subfolder's CLAUDE.md waits until Claude works there. Read as context.
+      key: kind
+      kind: brief
+      doc:
+        title: What kind of thing it is
+        description: Six kinds. Kind mostly decides when a thing loads, and settings is the only kind Claude never reads.
+        sections:
+          - title: Instruction
+            description: Standing guidance on how to behave.
+            body: |
+              A CLAUDE.md in Claude Code: the user one, an ancestor folder's, the repo's, `.claude\CLAUDE.md`, `CLAUDE.local.md`, a subfolder's, or a file pulled in by an `@import` line. In the chat app, Settings > General or a Project's instructions field. Always in context for its reach, relevant or not, so it should be short and universal.
+          - title: Rule
+            description: An instruction in its own file, optionally scoped to paths. Claude Code only.
+            body: |
+              Every `.md` in `~\.claude\rules` or the repo's `.claude\rules` loads like an extra CLAUDE.md. A `paths:` list in its frontmatter makes it wait until Claude touches a matching file. Rule differs from instruction only in file layout and that optional filter.
+          - title: Skill
+            description: A procedure for one kind of task, with its scripts, templates and references.
+            body: |
+              From `~\.claude\skills`, the repo's `.claude\skills`, a plugin, the skills synced down from claude.ai, or Settings > Skills in the chat app. Only the description loads at start; the body loads when invoked, so it costs almost nothing until used.
+          - title: Memory
+            description: What Claude wrote down from earlier sessions.
+            body: |
+              Claude Code's auto-memory is a folder of markdown files under `~\.claude\projects\<key>\memory`, one per fact, with a MEMORY.md index. Machine-local, per repository, never shared. The chat app keeps memory in the account under Settings > Memory, with a space per Project. How memory is kept is a question of its own: the child book under this event.
 
-          Claude Code loads a CLAUDE.md of up to 4 MiB and skips a larger one. Shorter files are followed more consistently.
-        kind=rule: |
-          Same as an instruction, one file per topic. Unscoped, it loads at start. With a paths list, it waits for a matching file. Read as context. Claude Code only.
-        kind=skill: |
-          Two stages. The frontmatter description loads at start, so Claude knows when to reach for it. The body and its files load when invoked.
-
-          Costs almost nothing until used. Read as context.
-        kind=memory: |
-          The MEMORY.md index loads at start, the first 200 lines or 25KB. Topic files load when Claude opens them.
-
-          A memory brief loads through a hook instead: an outline at SessionStart, the area on demand. Read as context. The write side is where enforcement can sit.
-        kind=knowledge: |
-          Small totals load whole at chat start. Large totals load by search, only the passages that match the question.
-
-          In Claude Code the folder's files are read on demand. Reference, never guidance.
-        kind=settings: |
-          Read by the harness, never by Claude: permissions, hooks, environment, feature toggles. Enforced.
-
-          A hook is the one setting that puts text into context, at the event it is wired to.
+              Two other things carry the name. A memory brief, such as orchestration's `claude\memory.brief`, is a curated memory for one repo. A `.memory` file, such as `Neogrids.memory`, is a Studio lens over a folder and holds no facts at all.
+          - title: Knowledge files
+            description: Reference material to consult, not guidance. Chat app only.
+            body: |
+              The documents uploaded into a Project: PDFs, spreadsheets, text, code. They say nothing about behaviour; they are the source of truth for a topic. The nearest Claude Code equivalent is the folder itself, the files Claude reads as it works, which is why a folder anchor and a Project anchor are partly substitutes.
+          - title: Settings
+            description: Permissions, hooks, environment, feature toggles. Enforced, never read as text.
+            body: |
+              Five tiers, highest precedence first: managed, command line, project local `.claude\settings.local.json`, shared project `.claude\settings.json`, user `~\.claude\settings.json`. Everything else in this book is context that Claude follows by judgment; settings are enforced by the harness. A hook is the one setting that puts text into context: whatever a SessionStart or UserPromptSubmit hook prints is added to the conversation, which is how orchestration's memory brief becomes memory.
+  - key: memory
+    label: How memory is kept
+    trigger: imposed
+    domain: Kinds
+    when: [kind=memory]
+    content:
+      key: memory
+      kind: playbook
+      doc:
+        version: 2
+        title: How memory is kept
+        description: The regime decides where memory lives and who sees it. The gate decides who controls what is written.
+        decisions:
+          - key: regime
+            label: Which regime?
+            values:
+              - key: auto
+                label: Auto-memory on
+              - key: relocated
+                label: Auto-memory relocated
+              - key: brief
+                label: Auto-memory off, a memory brief
+              - key: account
+                label: Account memory
+          - key: gate
+            label: Who decides what is written?
+            values:
+              - key: claude
+                label: Claude writes on its own
+              - key: ask
+                label: Shown first, written only on a yes
+              - key: enforced
+                label: A hook or permission rule refuses the write
+        events:
+          - key: regime
+            label: Where it lives and how it loads
+            trigger: imposed
+            hint: Answer which regime.
+            content:
+              key: regime
+              kind: md
+              by: [regime]
+              docs:
+                regime=auto: |
+                  The default in Claude Code. `~\.claude\projects\<key>\memory`, keyed by the git repository so worktrees share it. The first 200 lines or 25KB of MEMORY.md load at start; topic files load when Claude opens them. Claude decides what to save. Machine-local: never shared with teammates or cloud sessions. The Neogrids regime.
+                regime=relocated: |
+                  `autoMemoryDirectory` in a settings file, honoured from any tier, moves the folder. Put it inside the repo, git-ignored, and the Studio shows the files like any other document. Everything else is as auto-memory on.
+                regime=brief: |
+                  `autoMemoryEnabled: false` in the repo's settings, no auto-memory folder at all, and a curated brief in the repo, one top section per area, one child per fact. A SessionStart hook injects the outline and a UserPromptSubmit hook the area names, so the brief is index at start, body on demand, reminder every prompt. It sits in the team cell: committed, shared, readable in the cloud. The orchestration regime.
+                regime=account: |
+                  Settings > Memory in the chat app, with a space per Project. Kept in the account, so it follows the user across devices. Whether a memory saved in a folder-anchored chat lands here or stays in the desktop app's database is still to verify after the merge.
+          - key: gate
+            label: What guards a write
+            trigger: imposed
+            hint: Answer who decides.
+            content:
+              key: gate
+              kind: md
+              by: [gate]
+              docs:
+                gate=claude: |
+                  Claude saves what it judges useful for a future session, skipping what the codebase or a CLAUDE.md already says. Nothing to review until afterwards; `/memory` opens the files.
+                gate=ask: |
+                  A line in a CLAUDE.md or a rule such as "ask before saving a memory", or orchestration's playbook event "Something should be committed to memory": show the write, ask, write only on a yes, quote it in the report. Followed, not enforced.
+                gate=enforced: |
+                  A PreToolUse hook on writes under the memory folder, or the folder in the `ask` or `deny` permission list. The only hard guarantee; the hook can also log the write to a review queue instead of refusing it.
+  - key: load
+    label: The load tier
+    trigger: imposed
+    domain: Loading
+    content:
+      key: load
+      kind: brief
+      doc:
+        title: When it enters context
+        description: Four tiers from eager to on demand. This is the axis the probes measure, and kind mostly decides it.
+        sections:
+          - title: At session start
+            body: |
+              Every CLAUDE.md in the chain, unscoped rules, skill descriptions, the MEMORY.md index, settings, and whatever a SessionStart hook prints. A CLAUDE.md of up to 4 MiB loads whole; the memory index only to 200 lines or 25KB. Paid every session whether relevant or not.
+          - title: When a matching path is touched
+            body: |
+              A rule with a `paths:` list, and a subfolder's CLAUDE.md. Both stay out of context until Claude reads or edits a file the pattern or folder covers.
+          - title: When invoked
+            body: |
+              A skill's body and the files beside it, by typing its name or by Claude choosing it from the description. A UserPromptSubmit hook's output arrives at every prompt the same way.
+          - title: When Claude opens it
+            body: |
+              Memory topic files, the files in a folder, and Project knowledge: small totals load whole at chat start, large totals only as the passages a search matches. A fact buried in a memory topic file is invisible until Claude opens it.
+          - title: What the probes showed
+            body: |
+              Loaded at start in both the terminal and the desktop app: the user CLAUDE.md, the parent folder's CLAUDE.md, the repo's CLAUDE.md, the `@import`, `.claude\CLAUDE.md`, `CLAUDE.local.md`, both unscoped rules, the memory index line, and both skill descriptions. Not loaded until triggered: both skill bodies, the memory topic file, both rules scoped to `dates\**`, and `dates\CLAUDE.md`. `/context` in a terminal session prints the same answer without probes.
